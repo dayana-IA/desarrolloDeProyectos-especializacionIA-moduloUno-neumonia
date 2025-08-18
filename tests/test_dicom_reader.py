@@ -1,43 +1,33 @@
-"""
-Pruebas para la clase DicomReader.
-
-Este módulo contiene pruebas unitarias para el método
-DicomReader.read_dicom_file usando pytest. Las dependencias externas
-como dicom, cv2 y PIL son simuladas para evitar operaciones de I/O
-y de GUI.
-"""
-
+import pytest
 import numpy as np
 from unittest.mock import patch, MagicMock
-from dicom_reader import DicomReader
+from src.neumonia.dicom_reader import DicomReader
+from PIL import Image
 
-
-@patch("dicom_reader.dicom")
-@patch("dicom_reader.Image")
-@patch("dicom_reader.cv2")
-def test_read_dicom_file(mock_cv2, mock_Image, mock_dicom):
+def test_read_dicom_file():
     """
-    Prueba read_dicom_file con datos DICOM simulados.
+    Test para la función `DicomReader.read`.
 
-    Parámetros
-    ----------
-    mock_cv2 : MagicMock
-        Simulación del módulo cv2.
-    mock_Image : MagicMock
-        Simulación del módulo PIL.Image.
-    mock_dicom : MagicMock
-        Simulación del módulo dicom.
+    Verifica que la función lea correctamente un archivo DICOM simulado
+    y devuelva dos formatos de imagen:
+    1. Imagen en RGB como `np.ndarray`.
+    2. Imagen en formato PIL para visualización.
+
+    Se utiliza un mock de `pydicom.dcmread` para no depender de un archivo real.
+
+    Returns
+    -------
+    None
+        Este test no retorna valor, pero falla si la salida no cumple con los tipos y dimensiones esperadas.
     """
-    mock_dataset = MagicMock()
-    mock_dataset.pixel_array = np.array([[0, 255], [128, 64]], dtype=np.uint8)
-    mock_dicom.dcmread.return_value = mock_dataset
+    mock_pixel_array = np.random.randint(0, 256, (64, 64), dtype=np.uint16)
+    mock_dicom = MagicMock()
+    mock_dicom.pixel_array = mock_pixel_array
 
-    mock_img_pil = MagicMock()
-    mock_Image.fromarray.return_value = mock_img_pil
-
-    mock_cv2.cvtColor.return_value = np.zeros((2, 2, 3), dtype=np.uint8)
-
-    img_rgb, img2show = DicomReader.read_dicom_file("ruta_falsa.dcm")
-
-    assert isinstance(img_rgb, np.ndarray)
-    assert img2show == mock_img_pil
+    with patch("pydicom.dcmread", return_value=mock_dicom):
+        img_rgb, img_pil = DicomReader.read("dummy_path.dcm")
+    
+    assert isinstance(img_rgb, np.ndarray), "La imagen RGB debe ser un np.ndarray"
+    assert img_rgb.shape[2] == 3, "La imagen RGB debe tener 3 canales"
+    assert isinstance(img_pil, Image.Image), "La imagen PIL debe ser un objeto Image.Image"
+    assert img_rgb.shape[0:2] == mock_pixel_array.shape, "Las dimensiones deben coincidir con el pixel_array original"
