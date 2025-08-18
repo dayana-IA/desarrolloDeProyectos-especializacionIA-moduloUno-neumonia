@@ -130,3 +130,12 @@ dmypy.json
 
 # Ignorar todos los archivos .h5 (modelos Keras/TensorFlow)
 *.h5
+
+# Ignorar todos los archivos .pdf 
+*.pdf
+
+# Ignorar todos los archivos .jpg 
+*.jpg
+
+# Ignorar todos los archivos .csv 
+*.csv
