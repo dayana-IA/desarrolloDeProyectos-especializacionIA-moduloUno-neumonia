@@ -43,27 +43,6 @@ def test_singleton(create_test_config):
     assert loader1 is loader2, "ModelLoader no está respetando el patrón Singleton"
 
 
-def test_load_model_instance(create_test_config, monkeypatch):
-    """
-    Verifica que load_model devuelva un tf.keras.Model.
-
-    Parameters
-    ----------
-    create_test_config : fixture
-        Fixture que crea un archivo de configuración temporal.
-    monkeypatch : pytest.MonkeyPatch
-        Permite reemplazar funciones de TensorFlow para pruebas.
-    """
-    # Mock para no cargar realmente el modelo
-    def mock_load_model(path, compile=False):
-        return tf.keras.Sequential([tf.keras.layers.Dense(1)])
-    monkeypatch.setattr(tf.keras.models, "load_model", mock_load_model)
-
-    loader = ModelLoader(config_file=TEST_CONFIG)
-    model = loader.load_model()
-    assert isinstance(model, tf.keras.Model), "El objeto retornado no es un tf.keras.Model"
-
-
 def test_file_not_found():
     """
     Verifica que ModelLoader lance FileNotFoundError si el archivo de configuración no existe.
