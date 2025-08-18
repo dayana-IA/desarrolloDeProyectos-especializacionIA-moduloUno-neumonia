@@ -1,3 +1,6 @@
 {
-    "model_path": "conv_MLP_84.h5"
+    "model_path": "conv_MLP_84.h5",
+    "csv_path": "outputs/csv/historial.csv",
+    "pdf_path": "outputs/reportes/",
+    "image_path": "outputs/images/"
 }
