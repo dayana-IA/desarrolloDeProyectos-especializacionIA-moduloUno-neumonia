@@ -5,7 +5,7 @@ Clase para la predicción de neumonía y generación de Grad-CAM.
 """
 
 import os
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import numpy as np
 import tensorflow as tf
@@ -18,41 +18,20 @@ class GradCAMModel:
     """
     Clase que encapsula la carga del modelo, preprocesamiento,
     predicción y generación de mapas de calor Grad-CAM.
-
-    Attributes
-    ----------
-    model : tf.keras.Model
-        Modelo de red neuronal convolucional cargado.
     """
 
-    def __init__(self, model_path):
+    def __init__(self, model):
         """
-        Inicializa la clase cargando el modelo desde un archivo .h5.
-
-        Parameters
-        ----------
-        model_path : str
-            Ruta del archivo de modelo.
+        Inicializa la clase con un modelo Keras o una ruta a un modelo.
         """
-        self.model = tf.keras.models.load_model(model_path, compile=False)
+        if isinstance(model, str):
+            self.model = tf.keras.models.load_model(model, compile=False)
+        else:
+            self.model = model
 
     @staticmethod
     def read_dicom(path: str) -> tuple[np.ndarray, Image.Image]:
-        """
-        Lee un archivo DICOM y devuelve imagen RGB y PIL.Image.
-
-        Parameters
-        ----------
-        path : str
-            Ruta al archivo DICOM.
-
-        Returns
-        -------
-        img_rgb : np.ndarray
-            Imagen en formato RGB (512x512x3).
-        img_pil : PIL.Image.Image
-            Imagen en formato PIL.Image.
-        """
+        """Lee imagen DICOM y devuelve array para modelo y objeto PIL para UI"""
         img = dicom.dcmread(path)
         img_array = img.pixel_array
         img_pil = Image.fromarray(img_array)
@@ -62,21 +41,7 @@ class GradCAMModel:
 
     @staticmethod
     def read_jpg(path: str) -> tuple[np.ndarray, Image.Image]:
-        """
-        Lee un archivo JPG/PNG y devuelve imagen como array y PIL.Image.
-
-        Parameters
-        ----------
-        path : str
-            Ruta al archivo de imagen.
-
-        Returns
-        -------
-        img_array : np.ndarray
-            Imagen como array (H x W x 3).
-        img_pil : PIL.Image.Image
-            Imagen como PIL.Image.
-        """
+        """Lee imagen JPG/PNG y devuelve array para modelo y objeto PIL para UI"""
         img = cv2.imread(path)
         img_array = np.asarray(img)
         img_pil = Image.fromarray(img_array)
@@ -84,61 +49,38 @@ class GradCAMModel:
 
     @staticmethod
     def preprocess(array: np.ndarray) -> np.ndarray:
-        """
-        Preprocesa la imagen para la entrada del modelo.
-        Convierte a escala de grises si es RGB, aplica CLAHE y normaliza.
-
-        Parameters
-        ----------
-        array : np.ndarray
-            Imagen original (H x W x C) o (H x W).
-
-        Returns
-        -------
-        batch_array : np.ndarray
-            Imagen preprocesada lista para el modelo con shape (1, 512, 512, 1).
-        """
+        """Preprocesamiento para CNN: resize, gris, CLAHE, normalización, batch"""
         array_resized = cv2.resize(array, (512, 512))
-        # Si la imagen es RGB, convertir a gris
         if len(array_resized.shape) == 3 and array_resized.shape[2] == 3:
             gray = cv2.cvtColor(array_resized, cv2.COLOR_BGR2GRAY)
         else:
-            gray = array_resized  # ya es 2D
+            gray = array_resized
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(4, 4))
         clahe_img = clahe.apply(gray)
         normalized = clahe_img / 255.0
-        batch_array = np.expand_dims(normalized, axis=-1)
-        batch_array = np.expand_dims(batch_array, axis=0)
+        batch_array = np.expand_dims(normalized, axis=-1)  # Canal
+        batch_array = np.expand_dims(batch_array, axis=0)   # Batch
         return batch_array
 
     def grad_cam(self, array: np.ndarray, layer_name: str = "conv10_thisone") -> np.ndarray:
         """
         Genera un mapa de calor Grad-CAM sobre la imagen.
-
-        Parameters
-        ----------
-        array : np.ndarray
-            Imagen original (H x W x C) o (H x W).
-        layer_name : str, optional
-            Nombre de la capa convolucional de interés.
-
-        Returns
-        -------
-        superimposed_img : np.ndarray
-            Imagen con mapa de calor aplicado (512x512x3).
         """
         img_input = self.preprocess(array)
-        preds = self.model.predict(img_input)
-        argmax = int(np.argmax(preds[0]))
-
         conv_layer = self.model.get_layer(layer_name)
         grad_model = tf.keras.models.Model(
-            [self.model.inputs], [conv_layer.output, self.model.output]
+            inputs=self.model.inputs,
+            outputs=[conv_layer.output, self.model.output]
         )
 
         with tf.GradientTape() as tape:
             conv_outputs, predictions = grad_model(img_input)
-            loss = predictions[:, argmax]
+            # Asegurar tensor float32
+            predictions = tf.convert_to_tensor(predictions, dtype=tf.float32)
+            # Índice de la clase más probable
+            argmax = tf.argmax(predictions[0])
+            # Selección segura de la clase con tf.gather
+            loss = tf.gather(predictions[0], argmax)
 
         grads = tape.gradient(loss, conv_outputs)
         pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
@@ -163,25 +105,11 @@ class GradCAMModel:
     def predict(self, array: np.ndarray) -> tuple[str, float, np.ndarray]:
         """
         Predice la clase de neumonía y genera Grad-CAM.
-
-        Parameters
-        ----------
-        array : np.ndarray
-            Imagen original (H x W x C) o (H x W).
-
-        Returns
-        -------
-        label : str
-            Clase predicha ('bacteriana', 'normal', 'viral').
-        probability : float
-            Probabilidad de la clase en porcentaje.
-        heatmap_img : np.ndarray
-            Imagen con Grad-CAM superpuesto.
         """
         batch_img = self.preprocess(array)
         preds = self.model.predict(batch_img, verbose=0)
-        pred_class = int(np.argmax(preds))
-        probability = float(np.max(preds)) * 100
+        pred_class = int(np.argmax(preds[0]))
+        probability = float(np.max(preds[0])) * 100
         label = {0: "bacteriana", 1: "normal", 2: "viral"}.get(pred_class, "desconocida")
         heatmap_img = self.grad_cam(array)
         return label, probability, heatmap_img

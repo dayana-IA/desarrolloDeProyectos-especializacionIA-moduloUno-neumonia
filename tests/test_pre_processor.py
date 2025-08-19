@@ -9,7 +9,7 @@ operaciones reales de procesamiento de imagen.
 
 import numpy as np
 from unittest.mock import patch, MagicMock
-from src.neumonia.pre_processor import Preprocessor
+from src.neumonia.pre_processor import PreProcessor
 
 
 @patch("src.neumonia.pre_processor.cv2")
@@ -44,7 +44,7 @@ def test_preprocess(mock_cv2):
     mock_cv2.createCLAHE.return_value = mock_clahe
 
     # Ejecutar preprocess
-    result = Preprocessor.preprocess(fake_img)
+    result = PreProcessor.preprocess(fake_img)
 
     # Verificaciones
     assert isinstance(result, np.ndarray), "La salida debe ser un np.ndarray"
