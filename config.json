@@ -1,0 +1,5 @@
+{
+    "model_path": "models/conv_MLP_84.h5",
+    "csv_path": "outputs/csv/historial.csv",
+    "pdf_path": "outputs/reportes/"
+}
