@@ -7,5 +7,9 @@ opencv_python
 matplotlib
 pandas
 tensorflow
+<<<<<<< HEAD
 python-xlib
 pytest
+=======
+python-xlib
+>>>>>>> 2999aab20be69751e556c393c7838b16272776a4
