@@ -1,7 +1,30 @@
 [project]
 name = "uao-neumonia"
 version = "0.1.0"
-description = "Add your description here"
+description = "Proyecto para detección de neumonía con IA"
 readme = "README.md"
-requires-python = ">=3.13"
-dependencies = []
+requires-python = ">=3.10"
+dependencies = [
+    "tensorflow",
+    "opencv-python",
+    "matplotlib",
+    "pandas",
+    "pydicom",
+    "pillow",
+    "pyautogui",
+    "img2pdf",
+    "tkcap",
+    "python-xlib"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+]

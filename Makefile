@@ -1,2 +1,5 @@
 cod:
-	uv run detector_neumonia.py
+	uv run main.py
+.PHONY: test
+test:
+	uv run pytest -v
