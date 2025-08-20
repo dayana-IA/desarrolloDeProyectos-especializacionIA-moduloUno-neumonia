@@ -5,7 +5,6 @@ Integrator: coordina todas las funcionalidades del proyecto para ser consumidas
 por la UI. Separa responsabilidades y encapsula la lógica de negocio.
 """
 
-import os
 from pathlib import Path
 from typing import Tuple
 from PIL import Image
@@ -59,15 +58,17 @@ class Integrator:
             ds = dicom.dcmread(path)
             array = ds.pixel_array
             img_show = Image.fromarray(array)
-            array_rgb = cv2.cvtColor(np.uint8((array / array.max()) * 255), cv2.COLOR_GRAY2RGB)
+            array_norm = (array / array.max()) * 255
+            array_rgb = cv2.cvtColor(np.uint8(array_norm), cv2.COLOR_GRAY2RGB)
             return array_rgb, img_show
-        elif ext in [".jpg", ".jpeg", ".png"]:
+
+        if ext in [".jpg", ".jpeg", ".png"]:
             img = cv2.imread(path)
             array_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img_show = Image.fromarray(array_rgb)
             return array_rgb, img_show
-        else:
-            raise ValueError(f"Formato de archivo no soportado: {ext}")
+
+        raise ValueError(f"Formato de archivo no soportado: {ext}")
 
     def process_image(self, image_path: str, patient_id: str) -> Tuple[str, float, np.ndarray]:
         """
@@ -89,7 +90,9 @@ class Integrator:
         array, _ = self.load_image(image_path)
         return self.process_image_from_array(array, patient_id)
 
-    def process_image_from_array(self, array: np.ndarray, patient_id: str) -> Tuple[str, float, np.ndarray]:
+    def process_image_from_array(
+        self, array: np.ndarray, patient_id: str
+    ) -> Tuple[str, float, np.ndarray]:
         """
         Procesa una imagen ya cargada como array: preprocesa, predice y genera Grad-CAM.
 

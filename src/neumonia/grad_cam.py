@@ -5,13 +5,14 @@ Clase para la predicción de neumonía y generación de Grad-CAM.
 """
 
 import os
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-
 import numpy as np
 import tensorflow as tf
 import cv2
 from PIL import Image
 import pydicom as dicom
+
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 
 class GradCAMModel:

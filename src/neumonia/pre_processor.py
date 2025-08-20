@@ -26,7 +26,6 @@ class PreProcessor:
     -------
     read_dicom(path: str) -> tuple[np.ndarray, Image.Image]
         Lee un archivo DICOM y devuelve un array RGB y un objeto PIL.Image.
-    
     read_jpg(path: str) -> tuple[np.ndarray, Image.Image]
         Lee un archivo JPG/PNG y devuelve un array y un objeto PIL.Image.
 
