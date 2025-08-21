@@ -27,7 +27,7 @@ source .venv/bin/activate
 
 # Instalar dependencias
 uv pip install -r requirements.txt
-
+```
 ---
 
 ## Modelo (.h5)
@@ -35,16 +35,19 @@ uv pip install -r requirements.txt
 Descargar `conv_MLP_84.h5` según la URL en `models/download_model.txt` y colocarlo en `models/`.  
 Este archivo está **ignorando** en Git:
 
-```gitignore
+```bash
+gitignore
 models/*.h5
-
+```
 ---
 
 ## Ejecución
 
 Con el entorno activo:
 
-```python main.py
+```bash
+python main.py}
+```
 
 Se abrirá la interfaz. Ingrese la cédula del paciente, cargue una imagen (DICOM/JPG/PNG), presione Predecir para ver la clase y la probabilidad, revise el heatmap, y use Guardar o PDF según necesidad.
 
@@ -79,13 +82,16 @@ Se abrirá la interfaz. Ingrese la cédula del paciente, cargue una imagen (DICO
 
 Ejecutar pruebas unitarias con:
 
-```pytest -q
+```bash
+pytest -q
+```
 
 Verificar estilo y PEP8:
 
-```uv pip install flake8
+```bash
+uv pip install flake8
 flake8 src
-
+```
 ---
 
 ## Pruebas y estilo
@@ -101,6 +107,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 CMD ["python", "main.py"]
+```
 
 Construir y ejecutar montando modelos/datos/reportes:
 
@@ -111,14 +118,15 @@ docker run --rm \
   -v "$PWD/data:/app/data" \
   -v "$PWD/outputs:/app/outputs" \
   neumonia-app
-
+```
 ## Docker (opcional)
 
 Para portabilidad y reproducibilidad en cualquier equipo, puedes usar Docker para ejecutar el proyecto.
 
 ### Dockerfile
 
-```dockerfile
+```bash
+dockerfile
 FROM python:3.11-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-tk tk tcl libgl1 libglib2.0-0 fonts-dejavu && rm -rf /var/lib/apt/lists/*
@@ -127,37 +135,39 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 CMD ["python", "main.py"]
-
+```
 Construir la imagen y ejecutar montando los directorios models, data y outputs:
 
-```docker build -t neumonia-app .
+```bash
+docker build -t neumonia-app .
 docker run --rm \
   -v "$PWD/models:/app/models" \
   -v "$PWD/data:/app/data" \
   -v "$PWD/outputs:/app/outputs" \
   neumonia-app
-
+```
 Para mostrar la GUI desde Docker en Windows, asegúrate de tener un servidor X (como VcXsrv) corriendo, luego ejecuta el siguiente comando:
 
-```docker run -it --rm -e DISPLAY=host.docker.internal:0.0 \
+```bash
+docker run -it --rm -e DISPLAY=host.docker.internal:0.0 \
   -v "$PWD/models:/app/models" \
   -v "$PWD/data:/app/data" \
   -v "$PWD/outputs:/app/outputs" \
   neumonia-app
-
+```
 ---
 
-Contribución y créditos
+## Contribución y créditos
 
 Las contribuciones se hacen por ramas y Pull Requests.
 
-Proyecto original
+# Proyecto original
 
 Isabella Torres Revelo — https://github.com/isa-tr
 
 Nicolás Díaz Salazar — https://github.com/nicolasdiazsalazar
 
-Adaptación y mejoras (Módulo 1 – 2025)
+# Adaptación y mejoras (Módulo 1 – 2025)
 
 Dayana Muñoz Muñoz — https://github.com/dayana-IA
 
@@ -165,7 +175,7 @@ Jonatan Paz Guzmán — https://github.com/jonatan-paz-guzman-ia
 
 Daniel Carlosama Martínez — https://github.com/21danka
 
-Aportes de esta versión
+# Aportes de esta versión
 
 Refactorización y organización modular
 
@@ -181,10 +191,10 @@ Documentación (README) y Dockerización
 
 Entorno reproducible con uv
 ---
-Docencia / Acompañamiento
+# Docencia / Acompañamiento
 
 Jan Polanco Velasco (Senior Data Scientist)
 ---
-Licencia
+# Licencia
 
 MIT
