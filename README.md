@@ -79,7 +79,7 @@ Se abrirá la interfaz. Ingrese la cédula del paciente, cargue una imagen (DICO
 ```
 ---
 
-## EPruebas y estilo
+## Pruebas y estilo
 
 Ejecutar pruebas unitarias con:
 
@@ -95,31 +95,6 @@ flake8 src
 ```
 ---
 
-## Pruebas y estilo
-
-Para portabilidad y reproducibilidad en cualquier equipo:
-
-```bash
-FROM python:3.11-slim
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3-tk tk tcl libgl1 libglib2.0-0 fonts-dejavu && rm -rf /var/lib/apt/lists/*
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY . .
-CMD ["python", "main.py"]
-```
-
-Construir y ejecutar montando modelos/datos/reportes:
-
-```bash
-docker build -t neumonia-app .
-docker run --rm \
-  -v "$PWD/models:/app/models" \
-  -v "$PWD/data:/app/data" \
-  -v "$PWD/outputs:/app/outputs" \
-  neumonia-app
-```
 ## Docker (opcional)
 
 Para portabilidad y reproducibilidad en cualquier equipo, puedes usar Docker para ejecutar el proyecto.
@@ -162,13 +137,13 @@ docker run -it --rm -e DISPLAY=host.docker.internal:0.0 \
 
 Las contribuciones se hacen por ramas y Pull Requests.
 
-# Proyecto original
+## Proyecto original
 
 Isabella Torres Revelo — https://github.com/isa-tr
 
 Nicolás Díaz Salazar — https://github.com/nicolasdiazsalazar
 
-# Adaptación y mejoras (Módulo 1 – 2025)
+## Adaptación y mejoras (Módulo 1 – 2025)
 
 Dayana Muñoz Muñoz — https://github.com/dayana-IA
 
@@ -176,7 +151,7 @@ Jonatan Paz Guzmán — https://github.com/jonatan-paz-guzman-ia
 
 Daniel Carlosama Martínez — https://github.com/21danka
 
-# Aportes de esta versión
+## Aportes de esta versión
 
 Refactorización y organización modular
 
@@ -191,11 +166,13 @@ Pruebas unitarias (pytest)
 Documentación (README) y Dockerización
 
 Entorno reproducible con uv
+
 ---
-# Docencia / Acompañamiento
+## Docencia / Acompañamiento
 
 Jan Polanco Velasco (Senior Data Scientist)
+
 ---
-# Licencia
+## Licencia
 
 MIT
