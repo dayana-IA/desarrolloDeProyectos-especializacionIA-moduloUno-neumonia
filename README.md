@@ -53,6 +53,7 @@ Se abrirá la interfaz. Ingrese la cédula del paciente, cargue una imagen (DICO
 
 ## Estructura del proyecto
 
+```bash
 .
 ├── main.py
 ├── models/
@@ -75,7 +76,7 @@ Se abrirá la interfaz. Ingrese la cédula del paciente, cargue una imagen (DICO
 ├── tests/                         # pruebas unitarias (pytest)
 ├── requirements.txt
 └── README.md
-
+```
 ---
 
 ## EPruebas y estilo
