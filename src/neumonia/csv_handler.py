@@ -10,7 +10,6 @@ asegura que la carpeta exista y guarda los resultados en formato CSV.
 import csv
 import json
 import os
-from tkinter.messagebox import showinfo
 
 
 class CSVHandler:
@@ -58,4 +57,3 @@ class CSVHandler:
         with open(self.csv_path, "a", newline="") as csvfile:
             writer = csv.writer(csvfile, delimiter="-")
             writer.writerow([patient_id, label, f"{probability:.2f}%"])
-        showinfo(title="Guardar", message="Los datos se guardaron con éxito.")

@@ -1,7 +1,14 @@
 # src/neumonia/detector_neumonia.py
 # -*- coding: utf-8 -*-
 """
-UI para la detección de neumonía usando el integrador.
+Interfaz gráfica (UI) para la detección de neumonía usando el integrador.
+
+Este módulo implementa una aplicación basada en Tkinter que permite:
+- Cargar imágenes radiográficas en diferentes formatos.
+- Ejecutar un modelo de detección de neumonía.
+- Visualizar resultados con heatmaps.
+- Guardar resultados en CSV.
+- Generar reportes en PDF.
 """
 
 import os
@@ -16,8 +23,28 @@ import pyautogui
 # Importar integrador
 from .integrator import Integrator
 
+
 class App:
+    """
+    Clase principal de la aplicación de detección de neumonía.
+
+    Esta clase implementa la interfaz gráfica con Tkinter, integra el modelo
+    de predicción y gestiona las operaciones de carga, predicción, guardado
+    de resultados y generación de reportes.
+    """
+
     def __init__(self):
+        """
+        Inicializa la interfaz gráfica y los componentes principales.
+
+        Notes
+        -----
+        - Se definen las etiquetas, campos de texto, botones y disposición
+          de la interfaz.
+        - Se crea una instancia de :class:`Integrator` para manejar la lógica
+          de predicción y generación de reportes.
+        - El ciclo principal de Tkinter se inicia automáticamente.
+        """
         self.root = Tk()
         self.root.title("Detección de Neumonía")
         fonti = font.Font(weight="bold")
@@ -79,8 +106,18 @@ class App:
         self.text1.focus_set()
         self.root.mainloop()
 
-    # Métodos
     def load_img_file(self):
+        """
+        Carga un archivo de imagen desde el sistema de archivos.
+
+        Abre un cuadro de diálogo para seleccionar una imagen en formato
+        DICOM, JPG, JPEG o PNG. La imagen cargada se muestra en la interfaz
+        y se habilita el botón de predicción.
+
+        Notes
+        -----
+        - La imagen se convierte internamente en un array mediante el integrador.
+        """
         filepath = filedialog.askopenfilename(
             initialdir="/",
             title="Seleccionar imagen",
@@ -99,9 +136,25 @@ class App:
             self.button1["state"] = "enabled"
 
     def run_model(self):
+        """
+        Ejecuta el modelo de detección de neumonía sobre la imagen cargada.
+
+        Obtiene el ID del paciente, procesa la imagen con el integrador
+        y muestra los resultados en la interfaz gráfica.
+
+        Notes
+        -----
+        - Si no se ha cargado una imagen, se utiliza un flujo alternativo
+          de predicción sin array.
+        - Los resultados incluyen la clase predicha y la probabilidad.
+        """
         patient_id = self.ID.get()
-        self.label, self.proba, self.heatmap = self.integrator.process_image("", patient_id) if self.array is None else self.integrator.process_image_from_array(self.array, patient_id)
-        
+        self.label, self.proba, self.heatmap = (
+            self.integrator.process_image("", patient_id)
+            if self.array is None
+            else self.integrator.process_image_from_array(self.array, patient_id)
+        )
+
         self.img2 = Image.fromarray(self.heatmap)
         self.img2 = self.img2.resize((250, 250), Image.Resampling.LANCZOS)
         self.img2 = ImageTk.PhotoImage(self.img2)
@@ -110,16 +163,47 @@ class App:
         self.text3.insert(END, f"{self.proba:.2f}%")
 
     def save_results_csv(self):
+        """
+        Guarda los resultados de la predicción en un archivo CSV.
+
+        Obtiene el ID del paciente y llama al integrador para guardar
+        la etiqueta y probabilidad.
+
+        Notes
+        -----
+        - Muestra un cuadro de diálogo confirmando que los datos
+          fueron guardados exitosamente.
+        """
         patient_id = self.ID.get()
         self.integrator.save_result(patient_id, self.label, self.proba)
         showinfo(title="Guardar", message="Los datos se guardaron con éxito.")
 
     def create_pdf(self):
+        """
+        Genera un reporte en formato PDF con los resultados de la predicción.
+
+        Llama al integrador para crear el PDF y muestra un cuadro de diálogo
+        confirmando la ubicación del archivo generado.
+
+        Notes
+        -----
+        - Cada nuevo reporte incrementa el identificador ``reportID``.
+        """
         pdf_path = self.integrator.generate_pdf(self.root, self.reportID)
         self.reportID += 1
         showinfo(title="PDF", message=f"PDF generado en {pdf_path}")
 
     def delete(self):
+        """
+        Elimina todos los datos y resetea la interfaz gráfica.
+
+        Borra los textos de los campos de entrada, resultados y
+        heatmaps mostrados.
+
+        Notes
+        -----
+        - Solicita confirmación antes de borrar los datos.
+        """
         if askokcancel(title="Confirmación", message="Se borrarán todos los datos.", icon=WARNING):
             self.text1.delete(0, "end")
             self.text2.delete(1.0, "end")

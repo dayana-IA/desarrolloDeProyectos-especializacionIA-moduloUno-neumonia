@@ -38,36 +38,15 @@ class Integrator:
         self.csv_handler = CSVHandler(config_path=config_path)
         self.pdf_generator = PDFGenerator(config_path=config_path)
 
-    def load_image(self, path: str) -> Tuple[np.ndarray, Image.Image]:
+    def load_image(self, path: str):
         """
-        Carga imagen DICOM o JPG/PNG y devuelve array y PIL.Image.
-
+        Carga imagen DICOM y devuelve array y PIL.Image.
         Parameters
         ----------
         path : str
             Ruta al archivo de imagen.
-
-        Returns
-        -------
-        array : np.ndarray
-            Imagen lista para procesar.
-        img_show : PIL.Image
-            Imagen para mostrar en UI.
         """
-        ext = Path(path).suffix.lower()
-        if ext == ".dcm":
-            ds = dicom.dcmread(path)
-            array = ds.pixel_array
-            img_show = Image.fromarray(array)
-            array_rgb = cv2.cvtColor(np.uint8((array / array.max()) * 255), cv2.COLOR_GRAY2RGB)
-            return array_rgb, img_show
-        elif ext in [".jpg", ".jpeg", ".png"]:
-            img = cv2.imread(path)
-            array_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            img_show = Image.fromarray(array_rgb)
-            return array_rgb, img_show
-        else:
-            raise ValueError(f"Formato de archivo no soportado: {ext}")
+        return self.preprocessor.read_dicom(path)
 
     def process_image(self, image_path: str, patient_id: str) -> Tuple[str, float, np.ndarray]:
         """
@@ -87,7 +66,21 @@ class Integrator:
         heatmap_array : np.ndarray
         """
         array, _ = self.load_image(image_path)
-        return self.process_image_from_array(array, patient_id)
+        # Preprocesar
+        img_batch = self.preprocessor.preprocess(array)
+
+        # Predecir
+        preds = self.model.predict(img_batch, verbose=0)
+        pred_class = int(np.argmax(preds[0]))
+        prob = float(np.max(preds[0]) * 100)
+
+        label_map = {0: "bacteriana", 1: "normal", 2: "viral"}
+        label = label_map.get(pred_class, "desconocida")
+
+        # Generar Grad-CAM
+        heatmap_array = self.gradcam.grad_cam(array)
+
+        return label, prob, heatmap_array
 
     def process_image_from_array(self, array: np.ndarray, patient_id: str) -> Tuple[str, float, np.ndarray]:
         """
