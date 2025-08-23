@@ -48,40 +48,6 @@ class Integrator:
         """
         return self.preprocessor.read_dicom(path)
 
-    def process_image(self, image_path: str, patient_id: str) -> Tuple[str, float, np.ndarray]:
-        """
-        Procesa una imagen desde ruta de archivo.
-
-        Parameters
-        ----------
-        image_path : str
-            Ruta al archivo de imagen.
-        patient_id : str
-            Identificador del paciente.
-
-        Returns
-        -------
-        label : str
-        prob : float
-        heatmap_array : np.ndarray
-        """
-        array, _ = self.load_image(image_path)
-        # Preprocesar
-        img_batch = self.preprocessor.preprocess(array)
-
-        # Predecir
-        preds = self.model.predict(img_batch, verbose=0)
-        pred_class = int(np.argmax(preds[0]))
-        prob = float(np.max(preds[0]) * 100)
-
-        label_map = {0: "bacteriana", 1: "normal", 2: "viral"}
-        label = label_map.get(pred_class, "desconocida")
-
-        # Generar Grad-CAM
-        heatmap_array = self.gradcam.grad_cam(array)
-
-        return label, prob, heatmap_array
-
     def process_image_from_array(self, array: np.ndarray, patient_id: str) -> Tuple[str, float, np.ndarray]:
         """
         Procesa una imagen ya cargada como array: preprocesa, predice y genera Grad-CAM.
@@ -114,7 +80,7 @@ class Integrator:
         label = label_map.get(pred_class, "desconocida")
 
         # Generar Grad-CAM
-        heatmap_array = self.gradcam.grad_cam(array)
+        heatmap_array = self.gradcam.grad_cam(img_batch,array)
 
         return label, prob, heatmap_array
 
@@ -124,8 +90,8 @@ class Integrator:
         """
         self.csv_handler.save_result(patient_id, label, prob)
 
-    def generate_pdf(self, root, report_id: int) -> str:
+    def generate_pdf(self, x:int, y:int, w:int, h:int, report_id: int) -> str:
         """
         Genera PDF de la ventana Tkinter.
         """
-        return self.pdf_generator.create_pdf(root, report_id)
+        return self.pdf_generator.create_pdf(x, y, w, h, report_id)

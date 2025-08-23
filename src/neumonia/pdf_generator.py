@@ -45,7 +45,7 @@ class PDFGenerator:
         self.pdf_path = Path(pdf_path_str)
         self.pdf_path.mkdir(parents=True, exist_ok=True)
 
-    def create_pdf(self, root, report_id: int = 0) -> str:
+    def create_pdf(self, x:int, y:int, w:int, h:int, report_id: int = 0) -> str:
         """
         Genera un archivo PDF a partir de una captura de pantalla de un widget.
 
@@ -70,10 +70,6 @@ class PDFGenerator:
         - Se genera primero una imagen JPG temporal antes de convertirla en PDF.
         - El archivo resultante se guarda en la carpeta definida por ``pdf_path`` en el JSON.
         """
-        x = root.winfo_rootx()
-        y = root.winfo_rooty()
-        w = root.winfo_width()
-        h = root.winfo_height()
 
         screenshot = pyautogui.screenshot(region=(x, y, w, h))
         img_path = self.pdf_path / f"Reporte{report_id}.jpg"
