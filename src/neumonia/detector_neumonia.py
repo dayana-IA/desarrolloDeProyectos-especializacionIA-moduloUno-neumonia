@@ -150,9 +150,7 @@ class App:
         """
         patient_id = self.ID.get()
         self.label, self.proba, self.heatmap = (
-            self.integrator.process_image("", patient_id)
-            if self.array is None
-            else self.integrator.process_image_from_array(self.array, patient_id)
+            self.integrator.process_image_from_array(self.array, patient_id) 
         )
 
         self.img2 = Image.fromarray(self.heatmap)
@@ -189,7 +187,11 @@ class App:
         -----
         - Cada nuevo reporte incrementa el identificador ``reportID``.
         """
-        pdf_path = self.integrator.generate_pdf(self.root, self.reportID)
+        x = self.root.winfo_rootx()
+        y = self.root.winfo_rooty()
+        w = self.root.winfo_width()
+        h = self.root.winfo_height()
+        pdf_path = self.integrator.generate_pdf(x, y, w, h, self.reportID)
         self.reportID += 1
         showinfo(title="PDF", message=f"PDF generado en {pdf_path}")
 
