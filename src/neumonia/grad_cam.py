@@ -29,44 +29,11 @@ class GradCAMModel:
         else:
             self.model = model
 
-    @staticmethod
-    def read_dicom(path: str) -> tuple[np.ndarray, Image.Image]:
-        """Lee imagen DICOM y devuelve array para modelo y objeto PIL para UI"""
-        img = dicom.dcmread(path)
-        img_array = img.pixel_array
-        img_pil = Image.fromarray(img_array)
-        img_norm = np.uint8((np.maximum(img_array, 0) / img_array.max()) * 255.0)
-        img_rgb = cv2.cvtColor(img_norm, cv2.COLOR_GRAY2RGB)
-        return img_rgb, img_pil
-
-    @staticmethod
-    def read_jpg(path: str) -> tuple[np.ndarray, Image.Image]:
-        """Lee imagen JPG/PNG y devuelve array para modelo y objeto PIL para UI"""
-        img = cv2.imread(path)
-        img_array = np.asarray(img)
-        img_pil = Image.fromarray(img_array)
-        return img_array, img_pil
-
-    @staticmethod
-    def preprocess(array: np.ndarray) -> np.ndarray:
-        """Preprocesamiento para CNN: resize, gris, CLAHE, normalización, batch"""
-        array_resized = cv2.resize(array, (512, 512))
-        if len(array_resized.shape) == 3 and array_resized.shape[2] == 3:
-            gray = cv2.cvtColor(array_resized, cv2.COLOR_BGR2GRAY)
-        else:
-            gray = array_resized
-        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(4, 4))
-        clahe_img = clahe.apply(gray)
-        normalized = clahe_img / 255.0
-        batch_array = np.expand_dims(normalized, axis=-1)  # Canal
-        batch_array = np.expand_dims(batch_array, axis=0)   # Batch
-        return batch_array
-
-    def grad_cam(self, array: np.ndarray, layer_name: str = "conv10_thisone") -> np.ndarray:
+    def grad_cam(self,img_input:np.ndarray, array: np.ndarray, layer_name: str = "conv10_thisone") -> np.ndarray:
         """
         Genera un mapa de calor Grad-CAM sobre la imagen.
         """
-        img_input = self.preprocess(array)
+        
         conv_layer = self.model.get_layer(layer_name)
         grad_model = tf.keras.models.Model(
             inputs=self.model.inputs,
@@ -102,14 +69,4 @@ class GradCAMModel:
         superimposed_img = cv2.addWeighted(img_resized, 1.0, heatmap, 0.4, 0)
         return superimposed_img
 
-    def predict(self, array: np.ndarray) -> tuple[str, float, np.ndarray]:
-        """
-        Predice la clase de neumonía y genera Grad-CAM.
-        """
-        batch_img = self.preprocess(array)
-        preds = self.model.predict(batch_img, verbose=0)
-        pred_class = int(np.argmax(preds[0]))
-        probability = float(np.max(preds[0])) * 100
-        label = {0: "bacteriana", 1: "normal", 2: "viral"}.get(pred_class, "desconocida")
-        heatmap_img = self.grad_cam(array)
-        return label, probability, heatmap_img
+    
