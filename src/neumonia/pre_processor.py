@@ -59,27 +59,6 @@ class PreProcessor:
         img_rgb = cv2.cvtColor(img_norm, cv2.COLOR_GRAY2RGB)
         return img_rgb, img_pil
 
-    @staticmethod
-    def read_jpg(path: str) -> tuple[np.ndarray, Image.Image]:
-        """
-        Lee un archivo JPG o PNG y lo convierte a array y PIL.Image.
-
-        Parameters
-        ----------
-        path : str
-            Ruta al archivo de imagen.
-
-        Returns
-        -------
-        img_array : np.ndarray
-            Imagen como array (H x W x 3).
-        img_pil : PIL.Image.Image
-            Imagen en formato PIL.Image.
-        """
-        img = cv2.imread(path)
-        img_array = np.asarray(img)
-        img_pil = Image.fromarray(img_array)
-        return img_array, img_pil
 
     @staticmethod
     def preprocess(array: np.ndarray) -> np.ndarray:
